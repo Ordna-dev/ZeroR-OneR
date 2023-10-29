@@ -33,8 +33,9 @@ def main():  # Funcion que se encarga de leer el archivo csv y ejecuta las funci
         # testing(train, class_attribute)
 
         # Aca van a llamar las funciones de zeroR y oneR
-        # zeroR(train, "calories")
-        oneR(train)
+        zeroR(train, "calories")
+        oneR(train, "mfr")
+        
 
 
 def divideData(data):
@@ -65,37 +66,51 @@ def testing(data, class_attribute):
 
 
 def zeroR(dataframe: DataFrame, target_column: str):
-    most_frequent_value = dataframe[target_column].mode().iloc[0]
-    print(most_frequent_value)
-    return most_frequent_value
+    # Obtener la clase mas comun
+    most_common_value = dataframe[target_column].mode()[0]
+    # Imprimir la clase mas comun
+    print(f'ZeroR: {most_common_value}')
+    return most_common_value
 
 
-def oneR(dataframe: DataFrame):
-    best_attributes = {}
+def oneR(dataframe: DataFrame, target_column: str = "mfr"):
+    # inicializar variables
+    best_attribute = None # establecer el error minimo hacia el infino
+    lowest_error_rate = float('inf')  # atributo error minimo
+    best_rule = "" #mejor regla
+    print('\nOneR: \n')
 
-    for target in dataframe.columns:
-        min_error = float('inf')
-        best_attribute_for_target = None
+    # Iterar sobre cada columna/atributo de los datos excepto el atributo clase, nombre y tipo
+    for column in dataframe.columns:
+        if column != target_column and column != "name" and column != "type":
+            total_error = 0
 
-        # Considerar cada otra columna como predictor
-        for attribute in dataframe.columns:
-            if attribute != target:
-                total_error = 0
+            # Obtener la tabla de frecuencia de cada valor del atributo
+            frequency_table = dataframe[column].value_counts()
+            
+            # Iterar sobre cada valor de ese atributo
+            for value in frequency_table.index:
+                # Obtener el subconjunto de datos donde el valor del atributo es igual al valor actual
+                subset = dataframe[dataframe[column] == value]
+                # Obtener la clase mas comun de ese subconjunto
+                most_common_class = subset[target_column].mode()[0]
+                # Obtener el numero de instancias que fueron clasificadas incorrectamente
+                correctly_classified = subset[subset[target_column] == most_common_class].shape[0]
+                
+                # Calcular el error
+                error = subset.shape[0] - correctly_classified
+                total_error += error
+                
+                # Imprimir la regla
+                print(f"Si {column} = {value}, entonces {target_column} = {most_common_class} con el error = {error}")
+            
+            error_rate = total_error / dataframe.shape[0]
+            
+            if error_rate < lowest_error_rate:
+                lowest_error_rate = error_rate
+                best_attribute = column
+                best_rule = f"El mejor atributo {target_column} es {column} con el menor error = {error_rate}"
+    
+    print(best_rule)
+    return best_attribute, lowest_error_rate
 
-                for value in dataframe[attribute].unique():
-                    sub_df = dataframe[dataframe[attribute] == value]
-                    most_common_class = sub_df[target].value_counts().idxmax()
-
-                    # Error es el total de filas menos las que tienen la clase más común
-                    error = len(sub_df) - \
-                        (sub_df[target] == most_common_class).sum()
-                    total_error += error
-
-                if total_error < min_error:
-                    min_error = total_error
-                    best_attribute_for_target = attribute
-
-        best_attributes[target] = best_attribute_for_target
-        print(best_attributes)
-
-    return best_attributes
