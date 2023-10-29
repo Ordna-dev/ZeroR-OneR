@@ -53,6 +53,7 @@ def divideData(data):
     return test, train
 
 
+
 # Función puramente para pruebas, pueden tomarlo como base para la realizacion de ZeroR y OneR
 def testing(data, class_attribute):
 
@@ -114,3 +115,5 @@ def oneR(dataframe: DataFrame, target_column: str = "mfr"):
     print(best_rule)
     return best_attribute, lowest_error_rate
 
+
+    
