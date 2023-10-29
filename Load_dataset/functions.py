@@ -104,4 +104,62 @@ def oneR(data, class_attribute): #Algoritmo de OneR hecho por Alejandro Guerrero
     
     #Tabla de reglas
 
-    #Resultado del algoritmo
+    print("\nTabla de reglas\n")
+
+    # Inicializa el error mínimo como infinito
+    min_error = float('inf')
+
+    # Inicializa el atributo con el error mínimo como None
+    min_error_attr = None
+
+    # Itera sobre cada columna en los datos
+    for column in data.columns:
+
+        # Si la columna es el atributo clase, la salta
+        if column == class_attribute:
+            continue
+
+        # Crea una tabla de frecuencias para cada valor de la columna y el atributo clase
+        frequency_table = data.groupby([column, class_attribute]).size()
+
+        # Inicializa la tabla de reglas y los contadores de error e instancias totales
+        rule_table = {}
+        total_error = 0
+        total_instances = 0
+
+        print(f"\nAtributo: {column}.")
+
+        # Itera sobre cada valor único en la columna
+        for value in data[column].unique():
+
+            # Inicializa un diccionario para contar las ocurrencias de cada valor de clase
+            counts = {}
+
+            # Llena el diccionario con las ocurrencias de cada valor de clase para el valor actual de la columna
+            for class_value in class_values:
+                count = frequency_table.get((value, class_value), 0)
+                counts[class_value] = count
+
+            # Encuentra el valor de clase más frecuente y calcula el error para este valor de la columna
+            max_class_value = max(counts, key=counts.get)
+            error = sum(count for class_value, count in counts.items() if class_value != max_class_value)
+
+            # Actualiza los contadores de error e instancias totales
+            total_instances += sum(counts.values())
+            total_error += error
+
+            # Agrega la regla a la tabla de reglas
+            rule_table[value] = (max_class_value, error, sum(counts.values()))
+
+            print(f"Valor: {value}->{max_class_value}. {error}/{sum(counts.values())}.")
+
+        # Imprime el error total para este atributo
+        print(f"Error total: {total_error}/{total_instances}.")
+        
+        # Si el error total para este atributo es menor que el error mínimo actual, actualiza el error mínimo y el atributo con el error mínimo
+        if total_error < min_error:
+            min_error = total_error
+            min_error_attr = column
+
+    # Imprime el atributo con el error total más pequeño y su error
+    print(f"\nEl atributo con el error total más pequeño es: {min_error_attr} con un error total de {min_error}.")
