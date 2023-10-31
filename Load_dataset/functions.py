@@ -1,3 +1,7 @@
+# Programa hecho por:
+# Guerrero Moya Alejandro
+# Vazquez Valadez Angel Isaac
+
 import pandas
 import tkinter
 import random
@@ -140,11 +144,15 @@ class NaiveBayes:
         
         # Calcular a priori
         self.classes = dataframe[target_column].unique()
+        print("\nClases unicas: ", self.classes)
+
         # Iterar sobre cada clase
         for cls in self.classes:
             # Calcular la probabilidad de que la clase sea igual a la clase actual
             self.priors[cls] = len(dataframe[dataframe[target_column] == cls]) / total_records
         
+        print("\nProbabilidades a priori: ", self.priors)
+
         # calcula la probabilidad condicional
         for column in dataframe.columns:
             # Ignorar el atributo clase
@@ -158,6 +166,9 @@ class NaiveBayes:
                         # Calcular la probabilidad de que el valor del atributo sea igual al valor actual
                         self.likelihoods[column][value][cls] = len(cls_subset[cls_subset[column] == value]) / len(cls_subset)
     
+        print("\nProbabilidades condicionales: ", dict(self.likelihoods))
+
+
     # metodo de prediccion
     def predict(self, dataframe: DataFrame, target_column: str):
         predictions = []
@@ -165,6 +176,8 @@ class NaiveBayes:
         for _, row in dataframe.iterrows():
             # Obtener los valores de cada atributo
             record = row.drop(target_column).to_dict()
+            print("\nRegistro actual: ", record)
+
             # Calcular la probabilidad de que la clase sea igual a la clase actual
             probabilities = dict()
             for cls in self.classes:
@@ -175,11 +188,15 @@ class NaiveBayes:
                     prob *= self.likelihoods.get(feature, {}).get(value, {}).get(cls, 0)
                 # Asignar la probabilidad a la clase actual
                 probabilities[cls] = prob
+            
+            print("\nProbabilidades: ", probabilities)
             # Obtener la clase con la probabilidad mas alta
             predictions.append(max(probabilities, key=probabilities.get))
         
+        print("\nPredicciones: ", predictions)
+
         # Calcular la precision
         correct_predictions = sum([1 for actual, pred in zip(dataframe[target_column], predictions) if actual == pred])
         accuracy = correct_predictions / len(dataframe)
-        print(f"NaiveBayes: {accuracy * 100:.2f}%")
+        print(f"\nPrecision NaiveBayes: {accuracy * 100:.2f}%")
         return predictions
